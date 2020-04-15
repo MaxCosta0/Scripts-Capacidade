@@ -2,6 +2,9 @@ import pandas as pd
 import re
 import numpy as np
 
+#-----------------------------------------------------------------------------#
+#Le um arquivo.txt e filtra informações relevantes em um vetor que é retornado#
+#-----------------------------------------------------------------------------#
 def getData(dataFile):
     fo = open(dataFile)
     lines = fo.readlines()
@@ -45,7 +48,9 @@ def getData(dataFile):
     
     return body
 
-
+#-------------------------------------------------#
+#Função que transforma um vetor de dados em um CSV#
+#-------------------------------------------------#
 def createCsv(File, Name):
     tuples = getData(File)
     #df = pd.DataFrame(tuples, columns = [' License ID', 'License Item', 'Type', 'Authorization-values', 'Real-values', 'Usage-percent(%)'])
@@ -56,6 +61,10 @@ def createCsv(File, Name):
     return df
 
 
+#------------------------------------------------------------------#
+#Renomeia as colunas de um dataFrame/CSV para um padrao que utiliza#
+#undescore "_" no lugar de espaço " ".                             #
+#------------------------------------------------------------------#
 def renameColumns(df, columns): 
     newColumns = {}
     
@@ -66,6 +75,10 @@ def renameColumns(df, columns):
 
     return df
 
+
+#----------------------------------------------------------------------#
+#Faz o tratamento dos dados e cria novas colunas com informações extras#
+#----------------------------------------------------------------------#
 def generateCompleteReport(fileBase, createdFile, name_csv, countDays):
     created = pd.read_csv(createdFile)
     created = renameColumns(created, list(created.columns))
@@ -74,14 +87,20 @@ def generateCompleteReport(fileBase, createdFile, name_csv, countDays):
     base = renameColumns(base, list(base.columns))
     
     completeReport = []
-    
+
+    #Faz a iteração sobre todas as linhas do dataFrame em que estamos analisando
     for index,row in created.iterrows():
+
+    	#importa linhas do dataframe base para comparações futuras
         rowBase = base.loc[base['license_id'] == row.license_id]
+
         if(row.maximum_tuple_number == 0):
             usage = 0
         else:
             usage = str(int(round(row.used_number/row.maximum_tuple_number, 2)*100)) + '%'
-            
+
+
+        #Tratamentos feitos comparando o DataFrame atual com o DataFrame base            
         monthlyGrowth = int(round(((row.used_number - rowBase.used_number.values[0])/countDays)))
         realGrowth = int(round(((row.used_number - rowBase.used_number.values[0])/countDays)*30))
         
@@ -92,6 +111,7 @@ def generateCompleteReport(fileBase, createdFile, name_csv, countDays):
         elif forecastNumber > 24: forecast = 'Maior que 2 Anos'
         elif forecastNumber < 0: forecast = 'Decrescimento'
             
+        #Adicionando novas colunas [monthlyGrowth,realGrowth, forecast, forecastNumber] com valores resultantes dos tratamentos feitos
         newRow = [row.license_id, row.license_item, row.type, int(row.maximum_tuple_number), int(row.used_number), usage, monthlyGrowth,realGrowth, forecast, forecastNumber]
         completeReport.append(newRow)
     
@@ -102,7 +122,10 @@ def generateCompleteReport(fileBase, createdFile, name_csv, countDays):
     return report
 
 
-
+#-------------------------------------------------------------------------#
+#Função que facilita a passagem dos arquivos de analise e os arquivos base# 
+#como parametro ao rodar o scritp                                         #
+#-------------------------------------------------------------------------#
 def run(txt, month6, name_csv, days):
 
 	createCsv(txt, name_csv)

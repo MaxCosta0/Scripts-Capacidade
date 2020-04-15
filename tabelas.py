@@ -2,6 +2,9 @@ import re
 import pandas as pd
 import numpy as np
 
+#-----------------------------------------------------------------------------#
+#Le um arquivo.txt e filtra informações relevantes em um vetor que é retornado#
+#-----------------------------------------------------------------------------#
 def getTuples(fileName):
     f = open(fileName)
     lines = f.readlines()
@@ -52,6 +55,10 @@ def getTuples(fileName):
         
     return tuples
 
+
+#--------------------------------------------------------------#
+#Le uma tabela para rotular intervalos do arquivo a ser tratado#
+#--------------------------------------------------------------#
 def defineTableType(fileName):
     tables = {}
     df = pd.read_excel(fileName)
@@ -94,6 +101,9 @@ def defineTableType(fileName):
         
     return tables
 
+#------------------------------------------------------------------------#
+#Função que faz tratativas no vetor retornado por getTuples e cria um CSV#
+#------------------------------------------------------------------------#
 def createFinalCSV(tuplesFile, tablesFile, name):
     tuples = getTuples(tuplesFile)
     df = pd.DataFrame(tuples, 
@@ -145,6 +155,9 @@ def renameColumns(df, columns):
 
     return df
 
+#----------------------------------------------------------------------#
+#Faz o tratamento dos dados e cria novas colunas com informações extras#
+#----------------------------------------------------------------------#
 def generateCompleteReport(fileBase, fileActual, countDays, name):
     actual = pd.read_csv(fileActual)
     base = pd.read_csv(fileBase, sep=';')
@@ -153,8 +166,12 @@ def generateCompleteReport(fileBase, fileActual, countDays, name):
     completeReport = []
     
     for index,row in actual.iterrows():
+        #importa linhas do dataframe base para comparações futuras
         rowBase = base.loc[base['table_id'] == row.table_id]
+
         usage = str(int(round(row.used_number/row.maximum_tuple_number, 2)*100)) + '%'
+
+        #Tratamentos feitos comparando o DataFrame atual com o DataFrame base            
         monthlyGrowth = int(round(((row.used_number - rowBase.used_number.values[0])/countDays)))
         realGrowth = int(round(((row.used_number - rowBase.used_number.values[0])/countDays)*30))
         
@@ -165,6 +182,7 @@ def generateCompleteReport(fileBase, fileActual, countDays, name):
         elif forecastNumber > 24: forecast = 'Maior que 2 Anos'
         elif forecastNumber < 0: forecast = 'Decrescimento'
             
+        #Adicionando novas colunas [monthlyGrowth,realGrowth, forecast, forecastNumber, np.nan] com valores resultantes dos tratamentos feitos    
         newRow = [row.table_id, row.table_name, int(row.maximum_tuple_number), int(row.used_number), usage, monthlyGrowth,realGrowth, forecast, forecastNumber,np.nan]
         completeReport.append(newRow)
     
@@ -173,6 +191,10 @@ def generateCompleteReport(fileBase, fileActual, countDays, name):
     report.to_csv(name, index=False)
     return report
 
+#-------------------------------------------------------------------------#
+#Função que facilita a passagem dos arquivos de analise e os arquivos base# 
+#como parametro ao rodar o scritp                                         #
+#-------------------------------------------------------------------------#
 def run(txt_ULA, base_ULA, name_csv_ULA, txt_SPO, base_SPO, name_csv_SPO, days):
     createFinalCSV(txt_SPO,'FinalSPO.xlsx', name_csv_SPO)
     createFinalCSV(txt_ULA, 'finalULA.xlsx', name_csv_ULA)
