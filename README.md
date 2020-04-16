@@ -1,6 +1,6 @@
 # Scripts-Capacidade
 
-Scripts used to automation of capacity processes.
+Scripts used for automation of capacity processes.
 
 # Necessary Tools
 
