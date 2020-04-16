@@ -2,7 +2,7 @@
 
 Scripts used for automation of capacity processes.
 
-# Necessary Tools
+# Setup
 
 The miniconda distribution have a minimum python and conda installation that can handle this.
 
